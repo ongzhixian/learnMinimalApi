@@ -5,6 +5,14 @@
 dotnet new web -o PizzaStore
 dotnet add package Swashbuckle.AspNetCore --version 6.1.4
 
+dotnet add package Microsoft.EntityFrameworkCore.InMemory --version 6.0
+
+dotnet add package Microsoft.EntityFrameworkCore.Sqlite --version 6.0
+
+dotnet add package Microsoft.EntityFrameworkCore.Design --version 6.0
+
+dotnet tool install --global dotnet-ef
+
 To view Swagger API
 https://localhost:7098/swagger/index.html
 

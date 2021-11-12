@@ -1,10 +1,11 @@
 // No 'using' statements needed -- .NET 6 compiler figures out using statements for you. Yay!
 // As you add more features, like Entity Framework for example, you will need to add using statements, but for a simple API like the above, you don't need them yet.
 // ZX: Ok. So the question then becomes when do I need to add 'using' statements; kiv
-//
+// Basically, I think if using a namespace within .NET built-in libraries, it can be omitted.
 
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using PizzaStore.DB;
+using PizzaStore.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,12 +14,15 @@ var builder = WebApplication.CreateBuilder(args);
 // Add CORS
 // builder.Services.AddCors(options => {});
 
+builder.Services.AddDbContext<PizzaDb>(options => options.UseInMemoryDatabase("items"));
+
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { 
-        Title = "Todo API", 
-        Description = "Keep track of your tasks", 
+        Title = "PizzaStore API", 
+        Description = "Make pizzas!", 
         Version = "v1" 
     });
 });
@@ -30,6 +34,8 @@ var app = builder.Build();
 // {
 //     app.UseDeveloperExceptionPage();
 // }
+
+// ADD MIDDLEWARE
 
 // Add CORS middleware
 
@@ -48,11 +54,46 @@ app.MapGet("/", () => "Hello World!");
 // app.MapGet("/products/{id}", (int id) => data.SingleOrDefault(product => product.id == id);
 // app.MapPost("/product", (Product product) => {});
 
-app.MapGet("/pizzas/{id}", (int id) => PizzaDB.GetPizza(id));
-app.MapGet("/pizzas", () => PizzaDB.GetPizzas());
-app.MapPost("/pizzas", (Pizza pizza) => PizzaDB.CreatePizza(pizza));
-app.MapPut("/pizzas", (Pizza pizza) => PizzaDB.UpdatePizza(pizza));
-app.MapDelete("/pizzas/{id}", (int id) => PizzaDB.RemovePizza(id));
+// app.MapGet("/pizzas/{id}", (int id) => PizzaDB.GetPizza(id));
+// app.MapGet("/pizzas", () => PizzaDB.GetPizzas());
+// app.MapPost("/pizzas", (Pizza pizza) => PizzaDB.CreatePizza(pizza));
+// app.MapPut("/pizzas", (Pizza pizza) => PizzaDB.UpdatePizza(pizza));
+// app.MapDelete("/pizzas/{id}", (int id) => PizzaDB.RemovePizza(id));
 
+app.MapGet("/pizza/{id}", async (PizzaDb db, int id) => await db.Pizzas.FindAsync(id));
+app.MapGet("/pizzas", async (PizzaDb db) => await db.Pizzas.ToListAsync());
+app.MapPost("/pizza", async (PizzaDb db, Pizza pizza) =>
+{
+    await db.Pizzas.AddAsync(pizza);
+    await db.SaveChangesAsync();
+    return Results.Created($"/pizza/{pizza.Id}", pizza);
+});
+app.MapPut("/pizza/{id}", async ( PizzaDb db, Pizza updatepizza, int id) =>
+{
+    var pizza = await db.Pizzas.FindAsync(id);
+
+    if (pizza is null) return Results.NotFound();
+
+    pizza.Name = updatepizza.Name;
+    pizza.Description = updatepizza.Description;
+
+    await db.SaveChangesAsync();
+
+    return Results.NoContent();
+});
+app.MapDelete("/pizza/{id}", async (PizzaDb db, int id) =>
+{
+    var pizza = await db.Pizzas.FindAsync(id);
+    
+    if (pizza is null)
+    {
+        return Results.NotFound();
+    }
+
+    db.Pizzas.Remove(pizza);
+    await db.SaveChangesAsync();
+
+    return Results.Ok();
+});
 
 app.Run();
