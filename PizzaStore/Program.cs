@@ -10,14 +10,23 @@ using PizzaStore.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services
+readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+// readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
-// Add CORS
-// builder.Services.AddCors(options => {});
 
 var connectionString = builder.Configuration.GetConnectionString("Pizzas") ?? "Data Source=Pizzas.db";
 
 // builder.Services.AddDbContext<PizzaDb>(options => options.UseInMemoryDatabase("items"));
 builder.Services.AddSqlite<PizzaDb>(connectionString);
+
+builder.Services.AddCors(options =>
+{
+  options.AddPolicy(name: MyAllowSpecificOrigins,
+    builder =>
+    {
+         builder.WithOrigins("*");
+    });
+});
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -31,6 +40,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 
+
 var app = builder.Build();
 
 // if (app.Environment.IsDevelopment())
@@ -40,10 +50,10 @@ var app = builder.Build();
 
 // ADD MIDDLEWARE
 
-// Add CORS middleware
+app.UseCors(MyAllowSpecificOrigins);
 
-// app.UseCors("some unique string");
 app.UseSwagger();
+
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Todo API V1");
