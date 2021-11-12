@@ -15,7 +15,7 @@ namespace PizzaStore.Models
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseInMemoryDatabase("Pizzas");
+            // optionsBuilder.UseInMemoryDatabase("Pizzas");
         }
     }
 
