@@ -10,8 +10,7 @@ using PizzaStore.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services
-readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
-// readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
 
 var connectionString = builder.Configuration.GetConnectionString("Pizzas") ?? "Data Source=Pizzas.db";
